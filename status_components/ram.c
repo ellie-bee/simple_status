@@ -1,46 +1,58 @@
+#include "ram.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "ram.h"
 
 #define MAX_BUFFER 60
+static char output_buffer[MAX_BUFFER];
+
+static unsigned long total_mem;
+static unsigned long free_mem;
+static unsigned long available_mem;
+static unsigned long buffers_mem;
+static unsigned long cached_mem;
+
+void get_ram_info() {
+
+  FILE *file = fopen("/proc/meminfo", "r");
+  if (file == NULL) {
+    perror("Failed to open /proc/meminfo");
+    exit(-1);
+  }
+
+  char line[128];
+  while (fgets(line, sizeof(line), file)) {
+    sscanf(line, "MemTotal: %lu kB", &total_mem);
+    sscanf(line, "MemFree: %lu kB", &free_mem);
+    sscanf(line, "MemAvailable: %lu kB", &available_mem);
+    sscanf(line, "Buffers: %lu kB", &buffers_mem);
+    sscanf(line, "Cached: %lu kB", &cached_mem);
+  }
+
+  fclose(file);
+
+  if (total_mem == 0) {
+    fprintf(stderr, "Failed to read total memory from /proc/meminfo\n");
+    exit(-1);
+  }
+}
 
 const char *ram_percentage(const char *fmt) {
+  get_ram_info();
+  sprintf(output_buffer, fmt,
+          100.0f * (total_mem - free_mem - (buffers_mem + cached_mem)) /
+              total_mem);
+  return output_buffer;
+}
 
-  static char output_buffer[MAX_BUFFER];
+const char *ram_total(const char *fmt) {
+  get_ram_info();
+  sprintf(output_buffer, fmt, total_mem / 1E6);
+  return output_buffer;
+}
 
-    FILE *file;
-    char line[128];
-    unsigned long total = 0;
-    unsigned long free = 0;
-    unsigned long available = 0;
-    unsigned long buffers = 0;
-    unsigned long cached = 0;
-
-    file = fopen("/proc/meminfo", "r");
-    if (file == NULL) {
-        perror("Failed to open /proc/meminfo");
-        exit(-1);
-    }
-
-    while (fgets(line, sizeof(line), file)) {
-        if (sscanf(line, "MemTotal: %lu kB", &total) == 1 ||
-            sscanf(line, "MemFree: %lu kB", &free) == 1 ||
-            sscanf(line, "MemAvailable: %lu kB", &available) == 1 ||
-            sscanf(line, "Buffers: %lu kB", &buffers) == 1 ||
-            sscanf(line, "Cached: %lu kB", &cached) == 1) {
-        }
-    }
-
-    fclose(file);
-
-    if (total == 0) {
-        fprintf(stderr, "Failed to read total memory from /proc/meminfo\n");
-        exit(-1);
-    }
-
-    float used_percentage = 100.0f * (total - free - (buffers + cached)) / total;
-
-  sprintf(output_buffer, fmt, used_percentage);
-
+const char *ram_used(const char *fmt) {
+  get_ram_info();
+  sprintf(output_buffer, fmt,
+          (total_mem - free_mem - (buffers_mem + cached_mem)) / 1E6);
   return output_buffer;
 }

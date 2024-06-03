@@ -12,7 +12,7 @@ int main() {
   string_builder sb = {0};
   sb_init(&sb, 256);
 
-  do {
+  while(1) {
     // set the target time for an update frame
     // 1E9 - once  per second
     set_target(&ut, 0, 1E9);
@@ -30,7 +30,7 @@ int main() {
     // sleep until the next frame
     get_current_time(&ut.end);
     sleep_remaining(&ut);
-  } while (1);
+  }
 
   // cleanup
   free(sb.str);

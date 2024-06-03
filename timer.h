@@ -2,8 +2,6 @@
 
 #include <time.h>
 
-#define CLOCK_MONOTONIC 1
-
 typedef struct {
   struct timespec start, end, target;
 } UpdateTimer;

@@ -10,6 +10,10 @@ typedef struct {
     size_t capacity;
 } string_builder;
 
+#define sb_start(sb) string_builder *CONTEXT_FINAL_SB = (sb); string_builder CONTEXT_SB = {0}; sb_init(&CONTEXT_SB, 256)
+#define then(str) sb_append(&CONTEXT_SB, str)
+#define sb_end() sb_append(CONTEXT_FINAL_SB, CONTEXT_SB.str); free(CONTEXT_SB.str)
+
 // initialize the string_builder
 void sb_init(string_builder *sb, size_t initial_capacity);
 
