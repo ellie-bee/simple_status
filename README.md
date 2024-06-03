@@ -16,7 +16,7 @@ You can define how to build your status in `simple_status.c`
 // they're all just strings
 const char *separator = "  |  ";
 
-// build up small parts into larger if you like
+// build up small parts into larger
 const char *cpu_and_ram() {
   string_builder sb = sb_new();
   sb_init(&sb, 256);
@@ -29,10 +29,10 @@ const char *cpu_and_ram() {
   return sb_build(&sb);
 }
 
-// build_status_msg is what's invoked to build a message
+// build_status_msg should return your completed status message
 int build_status_msg(string_builder *sb) {
 
-  // use your favorite tools to build up a status message
+  // use your favorite tools to build it up
   sb_sep_by(sb, separator,
     battery_percent("BAT0", "battery: %d%%"),
     cpu_and_ram(),
