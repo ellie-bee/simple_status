@@ -12,13 +12,12 @@ static unsigned long buffers_mem;
 static unsigned long cached_mem;
 
 void get_ram_info() {
-
-  FILE *file = fopen("/proc/meminfo", "r");
-  if (file == NULL) {
-    perror("Failed to open /proc/meminfo");
+  FILE *file = fopen(("/proc/meminfo"), "r");
+  if (file == ((void *)0)) {
+    perror("Failed to open "
+           "/proc/meminfo");
     exit(-1);
   }
-
   char line[128];
   while (fgets(line, sizeof(line), file)) {
     sscanf(line, "MemTotal: %lu kB", &total_mem);
@@ -27,7 +26,6 @@ void get_ram_info() {
     sscanf(line, "Buffers: %lu kB", &buffers_mem);
     sscanf(line, "Cached: %lu kB", &cached_mem);
   }
-
   fclose(file);
 
   if (total_mem == 0) {

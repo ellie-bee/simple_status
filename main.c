@@ -1,18 +1,33 @@
+#include <signal.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "display.h"
 #include "simple_status.h"
 #include "timer.h"
 
+static Display *display;
+static string_builder sb;
+
+void cleanup() {
+  free(sb.str);
+  free_display(display);
+  exit(-1);
+}
+
 int main() {
-  Display *display = get_display();
+  display = get_display();
 
   UpdateTimer ut = {0};
 
   string_builder sb = {0};
   sb_init(&sb, 256);
 
-  while(1) {
+  signal(SIGTERM, cleanup);
+  signal(SIGHUP, cleanup);
+  signal(SIGINT, cleanup);
+
+  while (1) {
     // set the target time for an update frame
     // 1E9 - once  per second
     set_target(&ut, 0, 1E9);
@@ -32,7 +47,6 @@ int main() {
     sleep_remaining(&ut);
   }
 
-  // cleanup
   free(sb.str);
   free_display(display);
 

@@ -1,39 +1,42 @@
 # Simple Status
-Simple_status is a minimal C program to define how to build, and set a status message on window managers like [dwm](https://dwm.suckless.org/).
+Simple_status is a minimal C program to build and set a status message on window managers like [dwm](https://dwm.suckless.org/).
 I developed this as a replacement for [slstatus](https://tools.suckless.org/slstatus/) since I was unhappy with the limitations and lack of documentation on how to use it.
 
 You can define how to build your status in `simple_status.c`
 ```c title:simple_status.c
 #include "simple_status.h"
 
-// include what status components you want to use
-// or create your own
-#include "status_components/ram.h"
 #include "status_components/cpu.h"
+#include "status_components/power.h"
+#include "status_components/ram.h"
 #include "status_components/time.h"
 
-#define separator() then("  |  ")
+#include "string_builder.h"
 
-// The only required function in this file is `build_status_msg`
+// they're all just strings
+const char *separator = "  |  ";
+
+// build up small parts into larger if you like
+const char *cpu_and_ram() {
+  string_builder sb = sb_new();
+  sb_init(&sb, 256);
+
+  sb_append(&sb,
+    cpu_percentage("CPU %0.2f%% "),
+    "  ",
+    ram_percentage("RAM %.2f%%"));
+  
+  return sb_build(&sb);
+}
+
+// build_status_msg is what's invoked to build a message
 int build_status_msg(string_builder *sb) {
 
-  // I included a nice string_builder contextual macro... thing
-  sb_start(sb);
-
-    then(ram_percentage("ram perc: %.2f%%   "));
-    then(ram_total("ram total: %.2f   "));
-    then(ram_used("ram used: %.2f   "));
-
-    separator();
-
-    then(cpu_freq("MHz %0.2f  "));
-    then(cpu_percentage("CPU %0.2f "));
-
-    separator();
-
-    then(time_date("%A, %B %d, %Y"));
-
-  sb_end();
+  // use your favorite tools to build up a status message
+  sb_sep_by(sb, separator,
+    battery_percent("BAT0", "battery: %d%%"),
+    cpu_and_ram(),
+    time_date("%A, %B %d, %Y  %H:%M"));
 
   return 0;
 }
